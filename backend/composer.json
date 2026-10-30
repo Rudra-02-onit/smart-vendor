@@ -1,0 +1,8 @@
+{
+    "require": {
+        "mongodb/mongodb": "^2.5"
+    },
+    "config": {
+        "vendor-dir": "libs"
+    }
+}

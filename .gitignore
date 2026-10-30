@@ -1,0 +1,34 @@
+# Composer dependencies
+backend/libs/
+backend/composer.lock
+
+# Node modules
+react_frontend/node_modules/
+frontend/node_modules/
+
+# Build output
+react_frontend/dist/
+frontend/dist/
+
+# Uploaded files (optional - comment out if you want to track them)
+uploads/*.jpg
+uploads/*.jpeg
+uploads/*.png
+uploads/*.webp
+uploads/*.pdf
+uploads/*.jfif
+
+# Environment / Secrets
+.env
+*.env
+
+# XAMPP / PHP logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,20 @@
+<?php
+require_once "db.php";
+
+$email = "jatin123@gmail.com";
+$newPassword = "Jatin@New927";
+$hashedPassword = password_hash($newPassword, PASSWORD_DEFAULT);
+
+$stmt = $conn->prepare("UPDATE users SET password = ? WHERE email = ?");
+$stmt->bind_param("ss", $hashedPassword, $email);
+$stmt->execute();
+
+if ($stmt->affected_rows > 0) {
+    echo "Password changed successfully";
+} else {
+    echo "Password change nahi hua. Email ya column check karo.";
+}
+
+$stmt->close();
+$conn->close();
+?>
