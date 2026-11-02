@@ -1,26 +1,44 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
+const MENU_ITEMS = [
+  { icon:"🏠", label:"Home",            path:"/customer-dashboard" },
+  { icon:"🥕", label:"Vegetables",      cat:"Vegetables"  },
+  { icon:"🍎", label:"Fresh Fruits",    cat:"Fruits"      },
+  { icon:"🥛", label:"Dairy Products",  cat:"Dairy"       },
+  { icon:"🌾", label:"Organic Grocery", cat:"Grocery"     },
+  { icon:"🌿", label:"Herbs",           cat:"Herbs"       },
+  { icon:"🌶️", label:"Spices",         cat:"Spices"      },
+  { icon:"🥬", label:"Leafy Greens",    cat:"Leafy"       },
+  { icon:"📦", label:"My Orders",       path:"/my-bookings" },
+];
+
 const CATEGORIES = [
-  { id:"all",        icon:"🛒", label:"All"           },
-  { id:"Vegetables", icon:"🥕", label:"Vegetables"    },
-  { id:"Fruits",     icon:"🍎", label:"Fresh Fruits"  },
-  { id:"Dairy",      icon:"🥛", label:"Dairy"         },
-  { id:"Grocery",    icon:"🌾", label:"Grocery"       },
-  { id:"Herbs",      icon:"🌿", label:"Herbs"         },
-  { id:"Spices",     icon:"🌶️", label:"Spices"       },
-  { id:"Leafy",      icon:"🥬", label:"Leafy Greens"  },
+  { id:"Vegetables", icon:"🥕", label:"Indian Vegetable",   emoji:"🥕" },
+  { id:"Fruits",     icon:"🍎", label:"In Season Fruits",   emoji:"🍎" },
+  { id:"Dairy",      icon:"🥛", label:"Dairy Products",     emoji:"🥛" },
+  { id:"Grocery",    icon:"🌾", label:"Organic Grocery",    emoji:"🌾" },
+  { id:"Herbs",      icon:"🌿", label:"Herbs & Seasoning",  emoji:"🌿" },
+  { id:"Spices",     icon:"🌶️", label:"Exotic Spices",     emoji:"🌶️" },
+  { id:"Leafy",      icon:"🥬", label:"Leafy Greens",       emoji:"🥬" },
+  { id:"Exotic",     icon:"🫑", label:"Exotic Vegetables",  emoji:"🫑" },
+  { id:"Fruits",     icon:"🍇", label:"Exotic Fruits",      emoji:"🍇" },
+  { id:"Cut",        icon:"🔪", label:"Fresh Cut Veggies",  emoji:"🔪" },
+  { id:"Mushroom",   icon:"🍄", label:"Mushroom",           emoji:"🍄" },
+  { id:"Imported",   icon:"🌍", label:"Imported Veggies",   emoji:"🌍" },
 ];
 
 const BANNERS = [
-  { bg:"linear-gradient(135deg,#1b5e20,#43a047)", emoji:"🥕", title:"Fresh Vegetables Daily", sub:"Direct from local farms • Best prices guaranteed", badge:"UP TO 30% OFF" },
-  { bg:"linear-gradient(135deg,#e65100,#ff9800)", emoji:"🍎", title:"Fresh Fruits Season",    sub:"Hand-picked seasonal fruits • Farm fresh quality",  badge:"NEW ARRIVALS"  },
-  { bg:"linear-gradient(135deg,#1565c0,#42a5f5)", emoji:"🥛", title:"Pure Dairy Products",   sub:"Fresh milk, curd & more • Delivered every morning",  badge:"DAILY FRESH"   },
-  { bg:"linear-gradient(135deg,#6a1b9a,#ab47bc)", emoji:"🌾", title:"Organic Grocery",       sub:"Chemical-free • Healthy living for your family",      badge:"ORGANIC"       },
+  { bg:"linear-gradient(135deg,#1b5e20,#43a047)", emoji:"🥕", title:"Fresh Vegetables Daily",  sub:"Direct from local farms • Best prices", badge:"UP TO 30% OFF" },
+  { bg:"linear-gradient(135deg,#e65100,#ff9800)", emoji:"🍎", title:"Fresh Fruits This Season", sub:"Hand-picked • Farm fresh quality",       badge:"NEW ARRIVALS"  },
+  { bg:"linear-gradient(135deg,#1565c0,#42a5f5)", emoji:"🥛", title:"Pure Dairy Products",      sub:"Fresh milk & curd • Morning delivery",   badge:"DAILY FRESH"   },
+  { bg:"linear-gradient(135deg,#6a1b9a,#ab47bc)", emoji:"🌾", title:"Organic Grocery",          sub:"Chemical-free • Healthy living",         badge:"ORGANIC"       },
 ];
 
 export default function Vegetables() {
   const navigate = useNavigate();
+  const user = JSON.parse(sessionStorage.getItem("sv_user") || "{}");
+
   const [vegetables, setVegetables] = useState([]);
   const [message,    setMessage]    = useState("Loading...");
   const [selected,   setSelected]   = useState(null);
@@ -31,275 +49,297 @@ export default function Vegetables() {
   const [search,     setSearch]     = useState("");
   const [category,   setCategory]   = useState("all");
   const [banner,     setBanner]     = useState(0);
+  const [menuOpen,   setMenuOpen]   = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState(null);
-  const bannerRef = useRef(null);
 
   // Auto-slide banner
   useEffect(() => {
-    const t = setInterval(() => setBanner(b => (b+1) % BANNERS.length), 3500);
+    const t = setInterval(() => setBanner(b => (b + 1) % BANNERS.length), 3500);
     return () => clearInterval(t);
   }, []);
 
   const load = () => {
-    fetch("http://localhost/backend/customer/vegetables_api.php", { credentials:"include" })
-      .then(r=>r.json())
-      .then(d=>{
+    fetch("http://localhost/backend/customer/vegetables_api.php", { credentials: "include" })
+      .then(r => r.json())
+      .then(d => {
         if (d.success) { setVegetables(d.vegetables); setMessage(""); }
         else setMessage(d.message || "Failed to load.");
       })
-      .catch(()=>setMessage("Connection failed."));
+      .catch(() => setMessage("Connection failed."));
   };
-
-  useEffect(()=>{ load(); },[]);
+  useEffect(() => { load(); }, []);
 
   const open  = (v) => { setSelected(v); setQty(1); setNote(""); setBookMsg(""); setDeliveryInfo(null); };
   const close = () => { setSelected(null); setBookMsg(""); setDeliveryInfo(null); };
-  const total = selected ? (Number(qty)*Number(selected.price)).toFixed(2) : "0.00";
+  const total = selected ? (Number(qty) * Number(selected.price)).toFixed(2) : "0.00";
 
-  // Calculate delivery slot
   const getDeliverySlot = () => {
     const h = new Date().getHours();
-    if (h>=5  && h<8)  return { slot:"10:00 AM - 12:00 PM Today",  color:"#66bb6a" };
-    if (h>=8  && h<12) return { slot:"2:00 PM - 4:00 PM Today",    color:"#42a5f5" };
-    if (h>=12 && h<18) return { slot:"7:00 AM - 9:00 AM Tomorrow", color:"#ffa726" };
-    return                   { slot:"7:00 AM - 9:00 AM Tomorrow",   color:"#ffa726" };
+    if (h >= 5  && h < 8)  return "10:00 AM - 12:00 PM Today";
+    if (h >= 8  && h < 12) return "2:00 PM - 4:00 PM Today";
+    return "7:00 AM - 9:00 AM Tomorrow";
   };
 
   const confirmBook = async () => {
-    if (!qty || Number(qty)<=0) { setBookMsg("Enter valid quantity."); return; }
-    if (Number(qty)>Number(selected.available_quantity)) {
+    if (!qty || Number(qty) <= 0) { setBookMsg("Enter valid quantity."); return; }
+    if (Number(qty) > Number(selected.available_quantity)) {
       setBookMsg(`Only ${selected.available_quantity} ${selected.unit} available.`); return;
     }
     setBooking(true);
     const fd = new FormData();
-    fd.append("vegetable_id",  selected.id);
-    fd.append("quantity",      qty);
+    fd.append("vegetable_id", selected.id);
+    fd.append("quantity", qty);
     fd.append("customer_note", note);
     try {
-      const r = await fetch("http://localhost/backend/customer/book_api.php", { method:"POST", credentials:"include", body:fd });
+      const r = await fetch("http://localhost/backend/customer/book_api.php", { method: "POST", credentials: "include", body: fd });
       const d = await r.json();
-      if (d.success) {
-        setDeliveryInfo({ slot: d.delivery_slot, bookingId: d.booking_id, total: d.total_amount });
-        load();
-      } else setBookMsg(d.message||"Booking failed.");
+      if (d.success) { setDeliveryInfo({ slot: d.delivery_slot, id: d.booking_id, total: d.total_amount }); load(); }
+      else setBookMsg(d.message || "Booking failed.");
     } catch { setBookMsg("Connection failed."); }
     finally { setBooking(false); }
   };
 
   const filtered = vegetables.filter(v =>
-    (category==="all" || v.category===category) &&
+    (category === "all" || v.category === category) &&
     v.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const B = BANNERS[banner];
 
   return (
-    <div style={{minHeight:"100vh", background:"#0a0f0a"}}>
+    <div style={{ minHeight: "100vh", background: "#f5f5f0", fontFamily: "system-ui, sans-serif" }}>
+
+      {/* ── SLIDING MENU OVERLAY ── */}
+      {menuOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", zIndex: 1000, display: "flex" }}>
+          {/* Dark overlay */}
+          <div onClick={() => setMenuOpen(false)}
+            style={{ flex: 1, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(3px)" }} />
+          {/* Slide Menu Panel */}
+          <div style={{ width: 300, background: "#fafaf5", height: "100%", overflowY: "auto", boxShadow: "-8px 0 30px rgba(0,0,0,0.3)", display: "flex", flexDirection: "column" }}>
+            {/* Menu Header */}
+            <div style={{ background: "linear-gradient(135deg,#1b5e20,#2e7d32)", padding: "24px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ color: "white", fontWeight: 900, fontSize: 20 }}>🌿 FreshMart</div>
+                <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>Smart Vendor</div>
+              </div>
+              <button onClick={() => setMenuOpen(false)}
+                style={{ background: "rgba(255,255,255,0.2)", border: "none", borderRadius: "50%", width: 36, height: 36, color: "white", cursor: "pointer", fontSize: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+            </div>
+
+            {/* User Info */}
+            <div style={{ padding: "16px 20px", background: "#e8f5e9", borderBottom: "1px solid #c8e6c9" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#2e7d32,#43a047)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: "white", fontWeight: "bold" }}>
+                  {user.name?.[0]?.toUpperCase() || "C"}
+                </div>
+                <div>
+                  <div style={{ fontWeight: 700, color: "#1b5e20", fontSize: 15 }}>{user.name || "Customer"}</div>
+                  <div style={{ color: "#666", fontSize: 12 }}>{user.email}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Items */}
+            <div style={{ padding: "8px 0", flex: 1 }}>
+              {MENU_ITEMS.map((item, i) => (
+                <button key={i}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    if (item.path) navigate(item.path);
+                    else { setCategory(item.cat); }
+                  }}
+                  style={{ width: "100%", padding: "14px 20px", background: "transparent", border: "none", borderBottom: "1px solid #f0f0e8", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", textAlign: "left", fontSize: 15, color: "#333", fontFamily: "inherit" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <span style={{ fontSize: 22 }}>{item.icon}</span>
+                    {item.label}
+                  </span>
+                  <span style={{ color: "#aaa", fontSize: 14 }}>›</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Bottom */}
+            <div style={{ padding: "16px 20px", borderTop: "1px solid #e0e0d8" }}>
+              <div style={{ fontSize: 12, color: "#888", textAlign: "center" }}>© 2026 Smart Vendor · FreshMart</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── TOP NAV ── */}
-      <nav style={{background:"rgba(10,20,10,0.95)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"0 24px",display:"flex",justifyContent:"space-between",alignItems:"center",height:60,position:"sticky",top:0,zIndex:200}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <div style={{width:40,height:40,borderRadius:10,background:"linear-gradient(135deg,#1b5e20,#43a047)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,boxShadow:"0 4px 12px rgba(46,125,50,0.5)"}}>🌿</div>
-          <div>
-            <div style={{color:"white",fontWeight:900,fontSize:16,lineHeight:1}}>FreshMart</div>
-            <div style={{color:"#81c784",fontSize:10,fontWeight:"bold"}}>Smart Vendor</div>
+      <nav style={{ background: "white", borderBottom: "1px solid #e0e0d8", padding: "0 16px", display: "flex", justifyContent: "space-between", alignItems: "center", height: 56, position: "sticky", top: 0, zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button onClick={() => setMenuOpen(true)}
+            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: 4, padding: 6 }}>
+            <div style={{ width: 22, height: 2, background: "#333", borderRadius: 2 }} />
+            <div style={{ width: 22, height: 2, background: "#333", borderRadius: 2 }} />
+            <div style={{ width: 22, height: 2, background: "#333", borderRadius: 2 }} />
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(135deg,#1b5e20,#43a047)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🌿</div>
+            <div>
+              <div style={{ fontWeight: 900, fontSize: 16, color: "#1b5e20", lineHeight: 1 }}>FreshMart</div>
+              <div style={{ fontSize: 9, color: "#888" }}>Smart Vendor</div>
+            </div>
           </div>
         </div>
 
         {/* Search */}
-        <div style={{flex:1,maxWidth:400,margin:"0 20px",position:"relative"}}>
-          <span style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",fontSize:14}}>🔍</span>
-          <input value={search} onChange={e=>setSearch(e.target.value)}
-            placeholder="Search vegetables, fruits, grocery..."
-            style={{width:"100%",padding:"9px 16px 9px 36px",background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:25,color:"white",fontSize:13,outline:"none",boxSizing:"border-box"}} />
+        <div style={{ flex: 1, maxWidth: 380, margin: "0 16px", position: "relative" }}>
+          <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", fontSize: 14, color: "#888" }}>🔍</span>
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Search vegetables, fruits..."
+            style={{ width: "100%", padding: "8px 16px 8px 34px", background: "#f5f5f0", border: "1px solid #e0e0d8", borderRadius: 25, color: "#333", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
         </div>
 
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={()=>navigate("/my-bookings")} style={NB("#ffa726","rgba(255,167,38,0.15)")}>📦 Orders</button>
-          <button onClick={()=>navigate("/customer-dashboard")} style={NB("#90caf9","rgba(21,101,192,0.15)")}>← Home</button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={() => navigate("/my-bookings")}
+            style={{ padding: "8px 14px", background: "#e8f5e9", border: "none", borderRadius: 20, color: "#2e7d32", cursor: "pointer", fontWeight: "bold", fontSize: 12 }}>
+            📦 Orders
+          </button>
+          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#2e7d32,#43a047)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: "bold", fontSize: 16 }}>
+            {user.name?.[0]?.toUpperCase() || "C"}
+          </div>
         </div>
       </nav>
 
-      <div style={{display:"flex"}}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px" }}>
 
-        {/* ── LEFT SIDEBAR ── */}
-        <div style={{width:200,minHeight:"calc(100vh - 60px)",background:"rgba(0,0,0,0.4)",borderRight:"1px solid rgba(255,255,255,0.06)",padding:"16px 0",position:"sticky",top:60,height:"calc(100vh - 60px)",overflowY:"auto",flexShrink:0}}>
-          <div style={{padding:"0 12px 12px",color:"rgba(255,255,255,0.4)",fontSize:10,fontWeight:"bold",textTransform:"uppercase",letterSpacing:1}}>Categories</div>
-          {CATEGORIES.map(c=>(
-            <button key={c.id} onClick={()=>setCategory(c.id)}
-              style={{width:"100%",padding:"12px 16px",background:category===c.id?"rgba(46,125,50,0.3)":"transparent",border:"none",borderLeft:category===c.id?"3px solid #43a047":"3px solid transparent",color:category===c.id?"#81c784":"rgba(255,255,255,0.7)",cursor:"pointer",textAlign:"left",fontSize:13,fontWeight:category===c.id?"bold":"normal",display:"flex",alignItems:"center",gap:10,transition:"all 0.2s"}}>
-              <span style={{fontSize:18}}>{c.icon}</span> {c.label}
-            </button>
+        {/* ── BANNER SLIDER ── */}
+        <div style={{ borderRadius: 16, overflow: "hidden", marginBottom: 20, position: "relative", height: 160, cursor: "pointer" }}>
+          <div style={{ background: B.bg, height: "100%", display: "flex", alignItems: "center", padding: "0 32px", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", right: -20, top: -20, fontSize: 150, opacity: 0.12 }}>{B.emoji}</div>
+            <div style={{ flex: 1, zIndex: 1 }}>
+              <span style={{ background: "rgba(255,255,255,0.25)", color: "white", fontSize: 10, fontWeight: "bold", padding: "3px 10px", borderRadius: 20, letterSpacing: 1, marginBottom: 8, display: "inline-block" }}>{B.badge}</span>
+              <h2 style={{ color: "white", margin: "6px 0", fontSize: 20, fontWeight: 900 }}>{B.title}</h2>
+              <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 12, margin: 0 }}>{B.sub}</p>
+            </div>
+            <div style={{ fontSize: 80, filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.3))", flexShrink: 0 }}>{B.emoji}</div>
+          </div>
+          {/* Dots */}
+          <div style={{ position: "absolute", bottom: 10, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 6 }}>
+            {BANNERS.map((_, i) => (
+              <div key={i} onClick={() => setBanner(i)}
+                style={{ width: i === banner ? 18 : 6, height: 6, borderRadius: 3, background: i === banner ? "white" : "rgba(255,255,255,0.5)", transition: "all 0.3s", cursor: "pointer" }} />
+            ))}
+          </div>
+        </div>
+
+        {/* ── CATEGORY GRID (FreshnLocal style) ── */}
+        <h3 style={{ color: "#1b5e20", fontWeight: 900, fontSize: 16, marginBottom: 14 }}>Shop by Category</h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(100px, 1fr))", gap: 12, marginBottom: 24 }}>
+          <div onClick={() => setCategory("all")}
+            style={{ background: category === "all" ? "linear-gradient(135deg,#1b5e20,#43a047)" : "white", borderRadius: 14, padding: "16px 8px", textAlign: "center", cursor: "pointer", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", border: category === "all" ? "none" : "1px solid #e8e8e0", transition: "all 0.2s" }}>
+            <div style={{ fontSize: 36, marginBottom: 6 }}>🛒</div>
+            <div style={{ fontSize: 11, fontWeight: "bold", color: category === "all" ? "white" : "#333", lineHeight: 1.2 }}>ALL ITEMS</div>
+          </div>
+          {CATEGORIES.map((c, i) => (
+            <div key={i} onClick={() => setCategory(c.id)}
+              style={{ background: category === c.id ? "linear-gradient(135deg,#1b5e20,#43a047)" : "white", borderRadius: 14, padding: "16px 8px", textAlign: "center", cursor: "pointer", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", border: category === c.id ? "none" : "1px solid #e8e8e0", transition: "all 0.2s" }}>
+              <div style={{ fontSize: 36, marginBottom: 6 }}>{c.emoji}</div>
+              <div style={{ fontSize: 10, fontWeight: "bold", color: category === c.id ? "white" : "#333", lineHeight: 1.2, textTransform: "uppercase" }}>{c.label}</div>
+            </div>
           ))}
         </div>
 
-        {/* ── MAIN CONTENT ── */}
-        <div style={{flex:1,padding:"20px 24px",overflowX:"hidden"}}>
+        {/* ── PRODUCTS ── */}
+        <h3 style={{ color: "#1b5e20", fontWeight: 900, fontSize: 16, marginBottom: 14 }}>
+          {category === "all" ? "All Products" : CATEGORIES.find(c => c.id === category)?.label} ({filtered.length})
+        </h3>
 
-          {/* ── BANNER SLIDER ── */}
-          <div style={{borderRadius:16,overflow:"hidden",marginBottom:24,position:"relative",height:160,cursor:"pointer"}}>
-            <div style={{background:B.bg,height:"100%",display:"flex",alignItems:"center",padding:"0 40px",transition:"all 0.5s",position:"relative",overflow:"hidden"}}>
-              <div style={{position:"absolute",right:-20,top:-20,fontSize:160,opacity:0.12}}>{B.emoji}</div>
-              <div style={{flex:1,position:"relative",zIndex:1}}>
-                <span style={{background:"rgba(255,255,255,0.2)",color:"white",fontSize:10,fontWeight:"bold",padding:"4px 10px",borderRadius:20,letterSpacing:1,marginBottom:10,display:"inline-block"}}>{B.badge}</span>
-                <h2 style={{color:"white",margin:"6px 0 6px",fontSize:22,fontWeight:900}}>{B.title}</h2>
-                <p style={{color:"rgba(255,255,255,0.8)",fontSize:12,margin:0}}>{B.sub}</p>
-              </div>
-              <div style={{fontSize:80,filter:"drop-shadow(0 8px 20px rgba(0,0,0,0.4))"}}>{B.emoji}</div>
-            </div>
-            {/* Dots */}
-            <div style={{position:"absolute",bottom:12,left:"50%",transform:"translateX(-50%)",display:"flex",gap:6}}>
-              {BANNERS.map((_,i)=>(
-                <div key={i} onClick={()=>setBanner(i)}
-                  style={{width:i===banner?20:6,height:6,borderRadius:3,background:i===banner?"white":"rgba(255,255,255,0.4)",transition:"all 0.3s",cursor:"pointer"}} />
-              ))}
-            </div>
-          </div>
+        {message && <p style={{ textAlign: "center", color: "#888", marginTop: 30 }}>{message}</p>}
 
-          {/* ── CATEGORY CHIPS (horizontal scroll) ── */}
-          <div style={{display:"flex",gap:10,overflowX:"auto",marginBottom:20,paddingBottom:4}}>
-            {CATEGORIES.map(c=>(
-              <button key={c.id} onClick={()=>setCategory(c.id)}
-                style={{padding:"8px 16px",background:category===c.id?"linear-gradient(135deg,#1b5e20,#43a047)":"rgba(255,255,255,0.07)",border:category===c.id?"none":"1px solid rgba(255,255,255,0.1)",borderRadius:25,color:category===c.id?"white":"rgba(255,255,255,0.7)",cursor:"pointer",fontWeight:"bold",fontSize:12,whiteSpace:"nowrap",display:"flex",alignItems:"center",gap:6,transition:"all 0.2s",flexShrink:0}}>
-                <span>{c.icon}</span> {c.label}
-              </button>
-            ))}
-          </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14 }}>
+          {filtered.map(v => (
+            <div key={v.id}
+              style={{ background: "white", borderRadius: 14, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.08)", border: "1px solid #f0f0e8", cursor: "pointer", transition: "transform 0.15s" }}
+              onMouseEnter={e => e.currentTarget.style.transform = "translateY(-3px)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
 
-          {message && <p style={{textAlign:"center",color:"rgba(255,255,255,0.4)",marginTop:40,fontSize:15}}>{message}</p>}
-
-          {/* ── SECTION TITLE ── */}
-          {filtered.length>0 && (
-            <h3 style={{color:"rgba(255,255,255,0.7)",fontSize:14,marginBottom:16,fontWeight:"bold"}}>
-              {CATEGORIES.find(c=>c.id===category)?.icon} {CATEGORIES.find(c=>c.id===category)?.label || "All Products"} ({filtered.length})
-            </h3>
-          )}
-
-          {/* ── PRODUCTS GRID ── */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(200px,1fr))",gap:16}}>
-            {filtered.map(v=>(
-              <div key={v.id} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,overflow:"hidden",cursor:"pointer",transition:"transform 0.2s"}}
-                onMouseEnter={e=>e.currentTarget.style.transform="translateY(-4px)"}
-                onMouseLeave={e=>e.currentTarget.style.transform="translateY(0)"}>
-
-                {/* Product Image */}
-                <div style={{height:150,background:"linear-gradient(135deg,rgba(27,94,32,0.2),rgba(10,30,10,0.4))",position:"relative",overflow:"hidden"}}>
-                  {v.image
-                    ? <img src={v.image.startsWith("http")?v.image:`http://localhost/uploads/${v.image}`}
-                        alt={v.name} style={{width:"100%",height:"100%",objectFit:"cover"}}
-                        onError={e=>{e.target.onerror=null;e.target.style.display="none";}} />
-                    : <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:56}}>
-                        {CATEGORIES.find(c=>c.id===v.category)?.icon || "🥬"}
-                      </div>
-                  }
-                  {/* Category badge */}
-                  <div style={{position:"absolute",top:8,left:8,background:"rgba(0,0,0,0.6)",borderRadius:20,padding:"3px 8px",color:"white",fontSize:10,fontWeight:"bold"}}>
-                    {v.category || "Vegetables"}
+              <div style={{ height: 140, background: "#f5f5f0", position: "relative", overflow: "hidden" }}>
+                {v.image
+                  ? <img src={v.image.startsWith("http") ? v.image : `http://localhost/uploads/${v.image}`}
+                    alt={v.name} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    onError={e => { e.target.onerror = null; e.target.style.display = "none"; }} />
+                  : <div style={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 60 }}>
+                    {CATEGORIES.find(c => c.id === v.category)?.emoji || "🥬"}
                   </div>
-                  {/* Stock badge */}
-                  <div style={{position:"absolute",top:8,right:8,background:v.available_quantity>10?"rgba(46,125,50,0.8)":"rgba(230,81,0,0.8)",borderRadius:20,padding:"3px 8px",color:"white",fontSize:10,fontWeight:"bold"}}>
-                    {v.available_quantity} {v.unit}
-                  </div>
-                </div>
-
-                <div style={{padding:"12px 14px"}}>
-                  <h3 style={{color:"white",margin:"0 0 4px",fontSize:14,fontWeight:"bold",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{v.name}</h3>
-                  <p style={{color:"#81c784",fontSize:11,margin:"0 0 8px"}}>🏪 {v.vendor_name}</p>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                    <span style={{color:"#ffa726",fontWeight:900,fontSize:18}}>₹{v.price}</span>
-                    <span style={{color:"rgba(255,255,255,0.4)",fontSize:11}}>/{v.unit}</span>
-                  </div>
-                  <button onClick={()=>open(v)}
-                    style={{width:"100%",padding:"9px",background:"linear-gradient(135deg,#1b5e20,#43a047)",color:"white",border:"none",borderRadius:8,fontWeight:"bold",cursor:"pointer",fontSize:13,boxShadow:"0 4px 12px rgba(46,125,50,0.4)"}}>
-                    🛒 Add to Order
-                  </button>
+                }
+                <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(46,125,50,0.9)", borderRadius: 20, padding: "2px 8px", color: "white", fontSize: 9, fontWeight: "bold" }}>
+                  {v.category || "Vegetables"}
                 </div>
               </div>
-            ))}
-          </div>
 
-          {filtered.length===0 && !message && (
-            <div style={{textAlign:"center",padding:60,color:"rgba(255,255,255,0.4)"}}>
-              <div style={{fontSize:48,marginBottom:12}}>🔍</div>
-              <p>No products found in this category</p>
+              <div style={{ padding: "12px" }}>
+                <h3 style={{ color: "#222", margin: "0 0 4px", fontSize: 14, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{v.name}</h3>
+                <p style={{ color: "#2e7d32", fontSize: 11, margin: "0 0 6px" }}>🏪 {v.vendor_name}</p>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <span style={{ color: "#e65100", fontWeight: 900, fontSize: 17 }}>₹{v.price}</span>
+                  <span style={{ color: "#888", fontSize: 11 }}>/{v.unit}</span>
+                </div>
+                <button onClick={() => open(v)}
+                  style={{ width: "100%", padding: "9px", background: "linear-gradient(135deg,#2e7d32,#43a047)", color: "white", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer", fontSize: 13 }}>
+                  Add to Order
+                </button>
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </div>
 
       {/* ── BOOKING MODAL ── */}
       {selected && (
-        <div style={{position:"fixed",top:0,left:0,width:"100%",height:"100%",background:"rgba(0,0,0,0.8)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",padding:20,zIndex:1000}}>
-          <div style={{background:"#0d1f0d",border:"1px solid rgba(255,255,255,0.1)",borderRadius:20,width:"100%",maxWidth:460,maxHeight:"90vh",overflowY:"auto",boxShadow:"0 30px 80px rgba(0,0,0,0.7)"}}>
-
-            {/* Delivery Success Screen */}
+        <div style={{ position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.6)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 500 }}>
+          <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 440, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
             {deliveryInfo ? (
-              <div style={{padding:32,textAlign:"center"}}>
-                <div style={{fontSize:64,marginBottom:16}}>✅</div>
-                <h2 style={{color:"#81c784",marginBottom:8,fontSize:22}}>Booking Confirmed!</h2>
-                <p style={{color:"rgba(255,255,255,0.6)",marginBottom:24,fontSize:14}}>Booking ID: #{deliveryInfo.bookingId?.slice(-6)}</p>
-
-                <div style={{background:"rgba(46,125,50,0.15)",border:"1px solid rgba(46,125,50,0.3)",borderRadius:14,padding:"20px 24px",marginBottom:20}}>
-                  <div style={{color:"rgba(255,255,255,0.5)",fontSize:12,marginBottom:6}}>🚚 Estimated Delivery</div>
-                  <div style={{color:"#ffa726",fontWeight:900,fontSize:20}}>{deliveryInfo.slot}</div>
+              <div style={{ padding: 32, textAlign: "center" }}>
+                <div style={{ fontSize: 64, marginBottom: 12 }}>✅</div>
+                <h2 style={{ color: "#1b5e20", marginBottom: 8 }}>Booking Confirmed!</h2>
+                <p style={{ color: "#888", marginBottom: 20 }}>ID: #{deliveryInfo.id?.slice(-6)}</p>
+                <div style={{ background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 12, padding: "16px", marginBottom: 16 }}>
+                  <div style={{ color: "#888", fontSize: 12 }}>🚚 Delivery Slot</div>
+                  <div style={{ color: "#1b5e20", fontWeight: 900, fontSize: 18, marginTop: 4 }}>{deliveryInfo.slot}</div>
                 </div>
-
-                <div style={{background:"rgba(255,167,38,0.1)",border:"1px solid rgba(255,167,38,0.2)",borderRadius:14,padding:"16px",marginBottom:20}}>
-                  <div style={{color:"rgba(255,255,255,0.5)",fontSize:12,marginBottom:4}}>Total Amount</div>
-                  <div style={{color:"#ffa726",fontWeight:900,fontSize:28}}>₹{Number(deliveryInfo.total).toFixed(2)}</div>
+                <div style={{ background: "#fff3e0", borderRadius: 12, padding: "12px", marginBottom: 20 }}>
+                  <div style={{ color: "#888", fontSize: 12 }}>Total</div>
+                  <div style={{ color: "#e65100", fontWeight: 900, fontSize: 26 }}>₹{Number(deliveryInfo.total).toFixed(2)}</div>
                 </div>
-
-                <div style={{display:"flex",gap:10}}>
-                  <button onClick={()=>navigate("/my-bookings")} style={{flex:1,padding:"12px",background:"linear-gradient(135deg,#1b5e20,#43a047)",color:"white",border:"none",borderRadius:10,fontWeight:"bold",cursor:"pointer",fontSize:14}}>
-                    📦 View Orders
-                  </button>
-                  <button onClick={close} style={{flex:1,padding:"12px",background:"rgba(255,255,255,0.08)",color:"rgba(255,255,255,0.7)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,cursor:"pointer",fontSize:14}}>
-                    Continue Shopping
-                  </button>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => navigate("/my-bookings")} style={{ flex: 1, padding: "12px", background: "linear-gradient(135deg,#2e7d32,#43a047)", color: "white", border: "none", borderRadius: 10, fontWeight: "bold", cursor: "pointer" }}>View Orders</button>
+                  <button onClick={close} style={{ flex: 1, padding: "12px", background: "#f5f5f0", color: "#555", border: "none", borderRadius: 10, cursor: "pointer" }}>Continue</button>
                 </div>
               </div>
             ) : (
-              <div style={{padding:28}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
-                  <div>
-                    <h2 style={{color:"#81c784",margin:"0 0 4px",fontSize:18}}>🛒 {selected.name}</h2>
-                    <p style={{color:"rgba(255,255,255,0.5)",margin:0,fontSize:13}}>₹{selected.price}/{selected.unit} · Stock: {selected.available_quantity} {selected.unit}</p>
-                  </div>
-                  <button onClick={close} style={{background:"rgba(255,255,255,0.1)",border:"none",borderRadius:"50%",width:32,height:32,color:"white",cursor:"pointer",fontSize:16}}>✕</button>
+              <div style={{ padding: 24 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h2 style={{ color: "#1b5e20", margin: 0, fontSize: 18 }}>🛒 {selected.name}</h2>
+                  <button onClick={close} style={{ background: "#f5f5f0", border: "none", borderRadius: "50%", width: 32, height: 32, cursor: "pointer", fontSize: 16 }}>✕</button>
                 </div>
-
-                {/* Delivery Slot Preview */}
-                <div style={{background:"rgba(255,167,38,0.1)",border:"1px solid rgba(255,167,38,0.25)",borderRadius:12,padding:"12px 16px",marginBottom:20,display:"flex",alignItems:"center",gap:10}}>
-                  <span style={{fontSize:24}}>🚚</span>
+                <div style={{ background: "#e8f5e9", borderRadius: 10, padding: "10px 14px", marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                  <span>🚚</span>
                   <div>
-                    <div style={{color:"rgba(255,255,255,0.5)",fontSize:11}}>Estimated Delivery</div>
-                    <div style={{color:"#ffa726",fontWeight:"bold",fontSize:14}}>{getDeliverySlot().slot}</div>
+                    <div style={{ color: "#888", fontSize: 11 }}>Estimated Delivery</div>
+                    <div style={{ color: "#1b5e20", fontWeight: "bold", fontSize: 14 }}>{getDeliverySlot()}</div>
                   </div>
                 </div>
-
+                <p style={{ color: "#888", fontSize: 13, marginBottom: 16 }}>₹{selected.price}/{selected.unit} · Available: {selected.available_quantity} {selected.unit}</p>
                 <label style={LBL}>Quantity ({selected.unit})</label>
                 <input type="number" min="0.01" max={selected.available_quantity} step="0.01"
-                  value={qty} onChange={e=>setQty(e.target.value)} style={INP} />
-
-                <label style={{...LBL,marginTop:14}}>Note (Optional)</label>
-                <textarea value={note} onChange={e=>setNote(e.target.value)}
-                  placeholder="Any special request..." style={{...INP,minHeight:65,resize:"vertical"}} />
-
-                <div style={{background:"rgba(255,255,255,0.05)",borderRadius:12,padding:"14px 18px",textAlign:"center",margin:"16px 0"}}>
-                  <div style={{color:"rgba(255,255,255,0.5)",fontSize:11,marginBottom:4}}>Total Amount</div>
-                  <div style={{color:"#ffa726",fontSize:28,fontWeight:900}}>₹{total}</div>
+                  value={qty} onChange={e => setQty(e.target.value)} style={INP} />
+                <label style={{ ...LBL, marginTop: 12 }}>Note (Optional)</label>
+                <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="Special request..."
+                  style={{ ...INP, minHeight: 60, resize: "vertical" }} />
+                <div style={{ background: "#fff3e0", borderRadius: 10, padding: "12px", textAlign: "center", margin: "14px 0" }}>
+                  <div style={{ color: "#888", fontSize: 11 }}>Total</div>
+                  <div style={{ color: "#e65100", fontWeight: 900, fontSize: 26 }}>₹{total}</div>
                 </div>
-
-                {bookMsg && <p style={{color:"#ef5350",textAlign:"center",fontWeight:"bold",fontSize:13,marginBottom:12}}>{bookMsg}</p>}
-
+                {bookMsg && <p style={{ color: "#c62828", textAlign: "center", fontWeight: "bold", fontSize: 13 }}>{bookMsg}</p>}
                 <button onClick={confirmBook} disabled={booking}
-                  style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,#1b5e20,#43a047)",color:"white",border:"none",borderRadius:12,fontWeight:"bold",cursor:"pointer",fontSize:15,boxShadow:"0 6px 20px rgba(46,125,50,0.4)",opacity:booking?0.7:1,marginBottom:8}}>
-                  {booking?"⏳ Processing...":"✅ Confirm Order"}
+                  style={{ width: "100%", padding: "13px", background: "linear-gradient(135deg,#2e7d32,#43a047)", color: "white", border: "none", borderRadius: 10, fontWeight: "bold", cursor: "pointer", fontSize: 15, marginBottom: 8, opacity: booking ? 0.7 : 1 }}>
+                  {booking ? "⏳ Processing..." : "✅ Confirm Order"}
                 </button>
-                <button onClick={close}
-                  style={{width:"100%",padding:"11px",background:"rgba(255,255,255,0.05)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:12,cursor:"pointer",fontSize:13}}>
-                  Cancel
-                </button>
+                <button onClick={close} style={{ width: "100%", padding: "11px", background: "#f5f5f0", color: "#555", border: "none", borderRadius: 10, cursor: "pointer" }}>Cancel</button>
               </div>
             )}
           </div>
@@ -309,6 +349,5 @@ export default function Vegetables() {
   );
 }
 
-const NB = (color,bg) => ({padding:"8px 14px",background:bg,border:`1px solid ${color}30`,borderRadius:20,color,cursor:"pointer",fontWeight:"bold",fontSize:12,whiteSpace:"nowrap"});
-const LBL = {display:"block",marginBottom:6,color:"rgba(255,255,255,0.7)",fontSize:13,fontWeight:"bold"};
-const INP = {width:"100%",padding:"11px 14px",background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:10,color:"white",fontSize:14,boxSizing:"border-box",outline:"none",fontFamily:"inherit"};
+const LBL = { display: "block", marginBottom: 6, color: "#555", fontSize: 13, fontWeight: "bold" };
+const INP = { width: "100%", padding: "11px 14px", background: "#f5f5f0", border: "1px solid #e0e0d8", borderRadius: 10, color: "#333", fontSize: 14, boxSizing: "border-box", outline: "none", fontFamily: "inherit" };

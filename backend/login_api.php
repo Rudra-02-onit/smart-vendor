@@ -6,20 +6,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Content-Type: application/json");
 
-if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
-    exit();
-}
-
-session_set_cookie_params([
-    "lifetime" => 0,
-    "path"     => "/",
-    "domain"   => "",
-    "secure"   => false,
-    "httponly" => true,
-    "samesite" => "Lax"
-]);
-
-session_start();
+if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") { exit(); }
 
 require_once __DIR__ . "/libs/autoload.php";
 include "db.php";
@@ -29,74 +16,72 @@ $email    = trim($data["email"]    ?? "");
 $password = $data["password"] ?? "";
 
 if ($email === "" || $password === "") {
-    echo json_encode([
-        "success" => false,
-        "message" => "Please enter email and password."
-    ]);
+    echo json_encode(["success" => false, "message" => "Please enter email and password."]);
     exit();
 }
 
-// Find user by email
 $user = $usersCollection->findOne(["email" => $email]);
 
 if (!$user) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Invalid email or password."
-    ]);
+    echo json_encode(["success" => false, "message" => "Invalid email or password."]);
     exit();
 }
 
-// Status checks
 if ($user["status"] === "blocked") {
-    echo json_encode([
-        "success" => false,
-        "message" => "Your account has been blocked."
-    ]);
+    echo json_encode(["success" => false, "message" => "Your account has been blocked."]);
     exit();
 }
 
 if ($user["role"] === "vendor" && $user["status"] === "pending") {
-    echo json_encode([
-        "success" => false,
-        "message" => "Your vendor account is pending admin approval."
-    ]);
+    echo json_encode(["success" => false, "message" => "Your vendor account is pending admin approval."]);
     exit();
 }
 
 if ($user["role"] === "vendor" && $user["status"] === "rejected") {
-    echo json_encode([
-        "success" => false,
-        "message" => "Your vendor registration was rejected by admin."
-    ]);
+    echo json_encode(["success" => false, "message" => "Your vendor registration was rejected."]);
     exit();
 }
 
-// Verify password
 if (!password_verify($password, $user["password"])) {
-    echo json_encode([
-        "success" => false,
-        "message" => "Invalid email or password."
-    ]);
+    echo json_encode(["success" => false, "message" => "Invalid email or password."]);
     exit();
 }
-
-// Regenerate session
-session_regenerate_id(true);
 
 $userId = (string)$user["_id"];
+
+// Simple token - userId + role + timestamp encoded
+$tokenData = base64_encode(json_encode([
+    "user_id" => $userId,
+    "role"    => $user["role"],
+    "email"   => $user["email"],
+    "name"    => $user["name"],
+    "status"  => $user["status"],
+    "ts"      => time()
+]));
+
+// Also set session as backup
+session_set_cookie_params([
+    "lifetime" => 86400,
+    "path"     => "/",
+    "domain"   => "",
+    "secure"   => false,
+    "httponly" => true,
+    "samesite" => "Lax"
+]);
+session_start();
+session_regenerate_id(true);
 
 $_SESSION["user_id"]     = $userId;
 $_SESSION["user_name"]   = $user["name"];
 $_SESSION["user_email"]  = $user["email"];
 $_SESSION["user_role"]   = $user["role"];
 $_SESSION["user_status"] = $user["status"];
-
 session_write_close();
 
 echo json_encode([
     "success" => true,
     "message" => "Login successful",
+    "token"   => $tokenData,
     "user"    => [
         "id"     => $userId,
         "name"   => $user["name"],
@@ -105,5 +90,4 @@ echo json_encode([
         "status" => $user["status"]
     ]
 ]);
-
 ?>

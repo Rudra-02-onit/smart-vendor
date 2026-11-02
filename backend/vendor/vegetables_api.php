@@ -51,13 +51,13 @@ foreach ($cursor as $row) {
         $actualFile = $uploadsDir . $fileName;
 
         if (file_exists($actualFile)) {
-            $imageUrl = "http://localhost/smart_vendor/uploads/" . rawurlencode($fileName);
+            $imageUrl = "http://localhost/uploads/" . rawurlencode($fileName);
         } else {
             $vegName    = trim($row["name"]);
             $extensions = ["jpg", "jpeg", "png", "webp", "jfif"];
             foreach ($extensions as $ext) {
                 if (file_exists($uploadsDir . $vegName . "." . $ext)) {
-                    $imageUrl = "http://localhost/smart_vendor/uploads/" . rawurlencode($vegName . "." . $ext);
+                    $imageUrl = "http://localhost/uploads/" . rawurlencode($vegName . "." . $ext);
                     break;
                 }
             }

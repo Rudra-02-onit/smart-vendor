@@ -88,46 +88,46 @@ export default function AdminDashboard() {
   ] : [];
 
   if (loading) return (
-    <div style={{minHeight:"100vh",background:"#0a0a0f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
-      <div style={{fontSize:64,animation:"spin 1s linear infinite"}}>🥬</div>
-      <p style={{color:"#aaa",fontSize:18}}>Loading Admin Panel...</p>
+    <div style={{minHeight:"100vh",background:"white",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
+      <div style={{fontSize:64}}>🌿</div>
+      <p style={{color:"#888",fontSize:18}}>Loading Admin Panel...</p>
     </div>
   );
 
   return (
-    <div style={{minHeight:"100vh", background:"linear-gradient(135deg,#0a0a0f 0%,#0d1f0d 40%,#0a0f1a 100%)"}}>
+    <div style={{minHeight:"100vh", background:"#f5f5f0", fontFamily:"system-ui,sans-serif"}}>
 
       {/* Toast */}
       {toast && (
-        <div style={{position:"fixed",top:20,right:20,zIndex:9999,background:toast.startsWith("❌")?"#c62828":"#2e7d32",color:"white",padding:"14px 22px",borderRadius:12,fontWeight:"bold",boxShadow:"0 8px 30px rgba(0,0,0,0.5)",fontSize:14}}>
+        <div style={{position:"fixed",top:20,right:20,zIndex:9999,background:toast.startsWith("❌")?"#c62828":"#2e7d32",color:"white",padding:"14px 22px",borderRadius:12,fontWeight:"bold",boxShadow:"0 8px 30px rgba(0,0,0,0.2)",fontSize:14}}>
           {toast}
         </div>
       )}
 
       {/* NAVBAR */}
-      <nav style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.08)",padding:"0 28px",display:"flex",justifyContent:"space-between",alignItems:"center",height:64,position:"sticky",top:0,zIndex:100}}>
+      <nav style={{background:"white",borderBottom:"1px solid #e0e0d8",padding:"0 28px",display:"flex",justifyContent:"space-between",alignItems:"center",height:64,boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <span style={{fontSize:32,filter:"drop-shadow(0 0 12px rgba(67,160,71,0.8))"}}>🥬</span>
+          <div style={{width:42,height:42,borderRadius:10,background:"linear-gradient(135deg,#1b5e20,#43a047)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🌿</div>
           <div>
-            <div style={{color:"white",fontWeight:900,fontSize:18,lineHeight:1}}>Smart Vendor</div>
-            <div style={{color:"rgba(255,255,255,0.4)",fontSize:11}}>Admin Control Panel</div>
+            <div style={{fontWeight:900,fontSize:18,color:"#1b5e20",lineHeight:1}}>FreshMart Admin</div>
+            <div style={{color:"#888",fontSize:11}}>Smart Vendor Control Panel</div>
           </div>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <div style={{background:"rgba(46,125,50,0.2)",border:"1px solid rgba(46,125,50,0.4)",borderRadius:25,padding:"6px 16px",color:"#81c784",fontSize:13,fontWeight:"bold"}}>
+          <div style={{background:"#e8f5e9",border:"1px solid #a5d6a7",borderRadius:25,padding:"6px 16px",color:"#1b5e20",fontSize:13,fontWeight:"bold"}}>
             👑 {user.name || "Admin"}
           </div>
-          <button onClick={handleLogout} style={{padding:"8px 18px",background:"rgba(198,40,40,0.2)",border:"1px solid rgba(198,40,40,0.4)",borderRadius:20,color:"#ef9a9a",cursor:"pointer",fontWeight:"bold",fontSize:13}}>
+          <button onClick={handleLogout} style={{padding:"8px 18px",background:"#ffebee",border:"1px solid #ef9a9a",borderRadius:20,color:"#c62828",cursor:"pointer",fontWeight:"bold",fontSize:13}}>
             Logout
           </button>
         </div>
       </nav>
 
       {/* TABS */}
-      <div style={{display:"flex",gap:4,padding:"16px 28px 0",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+      <div style={{background:"white",display:"flex",gap:0,borderBottom:"2px solid #f0f0e8",padding:"0 28px",flexWrap:"wrap"}}>
         {tabs.map(t=>(
           <button key={t.key} onClick={()=>setTab(t.key)}
-            style={{padding:"10px 20px",background:tab===t.key?"rgba(46,125,50,0.25)":"transparent",border:tab===t.key?"1px solid rgba(46,125,50,0.5)":"1px solid transparent",borderRadius:"10px 10px 0 0",color:tab===t.key?"#81c784":"rgba(255,255,255,0.5)",cursor:"pointer",fontWeight:"bold",fontSize:13,transition:"all 0.2s"}}>
+            style={{padding:"14px 20px",border:"none",background:"transparent",cursor:"pointer",fontSize:14,color:tab===t.key?"#1b5e20":"#888",fontWeight:tab===t.key?"bold":"normal",borderBottom:tab===t.key?"3px solid #2e7d32":"3px solid transparent",transition:"all 0.2s",fontFamily:"inherit"}}>
             {t.icon} {t.label}
           </button>
         ))}
@@ -150,27 +150,26 @@ export default function AdminDashboard() {
             </div>
 
             {/* Booking Status */}
-            <h3 style={{color:"rgba(255,255,255,0.7)",marginBottom:16,fontSize:16,fontWeight:"bold"}}>📊 Booking Status</h3>
+            <h3 style={{color:"#555",marginBottom:16,fontSize:15,fontWeight:"bold"}}>📊 Booking Status</h3>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(180px,1fr))",gap:16,marginBottom:28}}>
               {[
-                {icon:"⏳",label:"Pending",   val:stats.pending_bookings,   color:"#ffa726",bg:"rgba(255,167,38,0.1)",  border:"rgba(255,167,38,0.3)"  },
-                {icon:"✅",label:"Accepted",  val:stats.accepted_bookings,  color:"#42a5f5",bg:"rgba(66,165,245,0.1)", border:"rgba(66,165,245,0.3)"  },
-                {icon:"🚚",label:"Delivered", val:stats.completed_bookings, color:"#66bb6a",bg:"rgba(102,187,106,0.1)",border:"rgba(102,187,106,0.3)" },
-                {icon:"❌",label:"Rejected",  val:stats.rejected_bookings,  color:"#ef5350",bg:"rgba(239,83,80,0.1)",  border:"rgba(239,83,80,0.3)"   },
+                {icon:"⏳",label:"Pending",   val:stats.pending_bookings,   color:"#e65100",bg:"#fff3e0",border:"#ffcc80"},
+                {icon:"✅",label:"Accepted",  val:stats.accepted_bookings,  color:"#1565c0",bg:"#e3f2fd",border:"#90caf9"},
+                {icon:"🚚",label:"Delivered", val:stats.completed_bookings, color:"#1b5e20",bg:"#e8f5e9",border:"#a5d6a7"},
+                {icon:"❌",label:"Rejected",  val:stats.rejected_bookings,  color:"#c62828",bg:"#ffebee",border:"#ef9a9a"},
               ].map(b=>(
                 <div key={b.label} style={{background:b.bg,border:`1px solid ${b.border}`,borderRadius:14,padding:"20px 16px",textAlign:"center"}}>
                   <div style={{fontSize:32,marginBottom:8}}>{b.icon}</div>
                   <div style={{color:b.color,fontSize:32,fontWeight:900}}>{b.val}</div>
-                  <div style={{color:"rgba(255,255,255,0.6)",fontSize:13}}>{b.label}</div>
+                  <div style={{color:"#666",fontSize:13}}>{b.label}</div>
                 </div>
               ))}
             </div>
 
-            {/* Pending vendors alert */}
             {stats.pending_vendors > 0 && (
-              <div style={{background:"rgba(255,167,38,0.1)",border:"1px solid rgba(255,167,38,0.3)",borderRadius:14,padding:"16px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                <span style={{color:"#ffa726",fontWeight:"bold"}}>⚠️ {stats.pending_vendors} vendor(s) waiting for approval</span>
-                <button onClick={()=>setTab("pending")} style={{padding:"8px 18px",background:"#ffa726",color:"#000",border:"none",borderRadius:20,fontWeight:"bold",cursor:"pointer",fontSize:13}}>Review Now</button>
+              <div style={{background:"#fff3e0",border:"1px solid #ffcc80",borderRadius:14,padding:"16px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{color:"#e65100",fontWeight:"bold"}}>⚠️ {stats.pending_vendors} vendor(s) waiting for approval</span>
+                <button onClick={()=>setTab("pending")} style={{padding:"8px 18px",background:"#e65100",color:"white",border:"none",borderRadius:20,fontWeight:"bold",cursor:"pointer",fontSize:13}}>Review Now</button>
               </div>
             )}
           </>
@@ -179,9 +178,9 @@ export default function AdminDashboard() {
         {/* ── PENDING VENDORS ── */}
         {tab==="pending" && (
           <>
-            <h2 style={{color:"white",marginBottom:20,fontSize:20}}>⏳ Pending Vendor Approvals</h2>
+            <h2 style={{color:"#1b5e20",marginBottom:20,fontSize:20}}>⏳ Pending Vendor Approvals</h2>
             {pending.length===0 ? (
-              <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:48,textAlign:"center",color:"rgba(255,255,255,0.5)"}}>
+              <div style={{background:"white",border:"1px solid #e0e0d8",borderRadius:16,padding:48,textAlign:"center",color:"#888",boxShadow:"0 2px 10px rgba(0,0,0,0.06)"}}>
                 ✅ No pending vendors!
               </div>
             ) : pending.map(v=>(
@@ -281,40 +280,41 @@ export default function AdminDashboard() {
         {/* ── USERS ── */}
         {tab==="users" && (
           <>
-            <h2 style={{color:"white",marginBottom:20,fontSize:20}}>👥 All Users</h2>
-            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:16,overflow:"hidden"}}>
+            <h2 style={{color:"#1b5e20",marginBottom:20,fontSize:20}}>👥 All Users</h2>
+            <div style={{background:"white",border:"1px solid #e0e0d8",borderRadius:16,overflow:"hidden",boxShadow:"0 2px 10px rgba(0,0,0,0.06)"}}>
               <table style={{width:"100%",borderCollapse:"collapse"}}>
                 <thead>
-                  <tr style={{background:"rgba(46,125,50,0.2)"}}>
+                  <tr style={{background:"#e8f5e9"}}>
                     {["Name","Email","Phone","Role","Status","Actions"].map(h=>(
-                      <th key={h} style={{padding:"14px 16px",textAlign:"left",color:"rgba(255,255,255,0.7)",fontSize:12,fontWeight:"bold",textTransform:"uppercase",letterSpacing:0.5,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{h}</th>
+                      <th key={h} style={{padding:"14px 16px",textAlign:"left",color:"#1b5e20",fontSize:12,fontWeight:"bold",textTransform:"uppercase",letterSpacing:0.5,borderBottom:"1px solid #c8e6c9"}}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((u,i)=>{
-                    const sColor = {active:"#66bb6a",pending:"#ffa726",blocked:"#ef5350",rejected:"#bdbdbd"}[u.status]||"#bdbdbd";
+                    const sc={active:"#1b5e20",pending:"#e65100",blocked:"#c62828",rejected:"#616161"}[u.status]||"#555";
+                    const sb={active:"#e8f5e9",pending:"#fff3e0",blocked:"#ffebee",rejected:"#f5f5f0"}[u.status]||"#f5f5f0";
                     return (
-                      <tr key={u.id} style={{borderBottom:"1px solid rgba(255,255,255,0.04)",background:i%2===0?"transparent":"rgba(255,255,255,0.01)"}}>
-                        <td style={{padding:"12px 16px",color:"white",fontSize:13}}>{u.name}</td>
-                        <td style={{padding:"12px 16px",color:"rgba(255,255,255,0.6)",fontSize:12}}>{u.email}</td>
-                        <td style={{padding:"12px 16px",color:"rgba(255,255,255,0.6)",fontSize:13}}>{u.phone}</td>
+                      <tr key={u.id} style={{borderBottom:"1px solid #f0f0e8",background:i%2===0?"white":"#fafaf5"}}>
+                        <td style={{padding:"12px 16px",color:"#222",fontSize:13,fontWeight:"bold"}}>{u.name}</td>
+                        <td style={{padding:"12px 16px",color:"#666",fontSize:12}}>{u.email}</td>
+                        <td style={{padding:"12px 16px",color:"#555",fontSize:13}}>{u.phone}</td>
                         <td style={{padding:"12px 16px"}}>
-                          <span style={{padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold",background:u.role==="vendor"?"rgba(46,125,50,0.2)":"rgba(21,101,192,0.2)",color:u.role==="vendor"?"#81c784":"#90caf9",textTransform:"capitalize"}}>{u.role}</span>
+                          <span style={{padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold",background:u.role==="vendor"?"#e8f5e9":"#e3f2fd",color:u.role==="vendor"?"#1b5e20":"#1565c0",textTransform:"capitalize"}}>{u.role}</span>
                         </td>
                         <td style={{padding:"12px 16px"}}>
-                          <span style={{padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold",background:`${sColor}20`,color:sColor,textTransform:"capitalize"}}>{u.status}</span>
+                          <span style={{padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold",background:sb,color:sc,textTransform:"capitalize"}}>{u.status}</span>
                         </td>
                         <td style={{padding:"12px 16px"}}>
                           <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                             {u.role==="vendor"&&u.status==="active"&&(
-                              <button onClick={()=>genLicence(u.id)} style={actBtn("#90caf9","rgba(21,101,192,0.3)")}>🪪</button>
+                              <button onClick={()=>genLicence(u.id)} style={AB("#1565c0","#e3f2fd")}>🪪</button>
                             )}
                             {u.status!=="blocked"
-                              ? <button onClick={()=>userAction(u.id,"block")} style={actBtn("#ffa726","rgba(255,167,38,0.2)")}>🚫</button>
-                              : <button onClick={()=>userAction(u.id,"unblock")} style={actBtn("#66bb6a","rgba(46,125,50,0.2)")}>✅</button>
+                              ? <button onClick={()=>userAction(u.id,"block")} style={AB("#e65100","#fff3e0")}>🚫</button>
+                              : <button onClick={()=>userAction(u.id,"unblock")} style={AB("#1b5e20","#e8f5e9")}>✅</button>
                             }
-                            <button onClick={()=>{ if(confirm("Delete user?")) userAction(u.id,"delete"); }} style={actBtn("#ef5350","rgba(198,40,40,0.2)")}>🗑️</button>
+                            <button onClick={()=>{ if(confirm("Delete user?")) userAction(u.id,"delete"); }} style={AB("#c62828","#ffebee")}>🗑️</button>
                           </div>
                         </td>
                       </tr>
@@ -329,31 +329,32 @@ export default function AdminDashboard() {
         {/* ── BOOKINGS ── */}
         {tab==="bookings" && (
           <>
-            <h2 style={{color:"white",marginBottom:20,fontSize:20}}>📦 All Bookings</h2>
-            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:16,overflow:"hidden"}}>
+            <h2 style={{color:"#1b5e20",marginBottom:20,fontSize:20}}>📦 All Bookings</h2>
+            <div style={{background:"white",border:"1px solid #e0e0d8",borderRadius:16,overflow:"auto",boxShadow:"0 2px 10px rgba(0,0,0,0.06)"}}>
               <table style={{width:"100%",borderCollapse:"collapse",minWidth:900}}>
                 <thead>
-                  <tr style={{background:"rgba(46,125,50,0.2)"}}>
+                  <tr style={{background:"#e8f5e9"}}>
                     {["#","Customer","Vendor","Item","Qty","Total","Status","Date"].map(h=>(
-                      <th key={h} style={{padding:"14px 16px",textAlign:"left",color:"rgba(255,255,255,0.7)",fontSize:12,fontWeight:"bold",textTransform:"uppercase",letterSpacing:0.5,borderBottom:"1px solid rgba(255,255,255,0.06)"}}>{h}</th>
+                      <th key={h} style={{padding:"14px 16px",textAlign:"left",color:"#1b5e20",fontSize:12,fontWeight:"bold",textTransform:"uppercase",letterSpacing:0.5,borderBottom:"1px solid #c8e6c9"}}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {bookings.map((b,i)=>{
-                    const sc={pending:"#ffa726",accepted:"#42a5f5",completed:"#66bb6a",rejected:"#ef5350"}[b.status]||"#bdbdbd";
+                    const sc={pending:"#e65100",accepted:"#1565c0",completed:"#1b5e20",rejected:"#c62828"}[b.status]||"#555";
+                    const sb={pending:"#fff3e0",accepted:"#e3f2fd",completed:"#e8f5e9",rejected:"#ffebee"}[b.status]||"#f5f5f0";
                     return (
-                      <tr key={b.booking_id} style={{borderBottom:"1px solid rgba(255,255,255,0.04)",background:i%2===0?"transparent":"rgba(255,255,255,0.01)"}}>
-                        <td style={{padding:"12px 16px",color:"rgba(255,255,255,0.4)",fontSize:11}}>#{b.booking_id.slice(-5)}</td>
-                        <td style={{padding:"12px 16px",color:"white",fontSize:13}}>{b.customer_name}</td>
-                        <td style={{padding:"12px 16px",color:"#81c784",fontSize:13}}>{b.vendor_name}</td>
-                        <td style={{padding:"12px 16px",color:"rgba(255,255,255,0.8)",fontSize:13}}>{b.vegetable_name}</td>
-                        <td style={{padding:"12px 16px",color:"rgba(255,255,255,0.6)",fontSize:13}}>{b.quantity} {b.unit}</td>
-                        <td style={{padding:"12px 16px",color:"#ffa726",fontWeight:"bold",fontSize:13}}>₹{Number(b.total_amount).toFixed(2)}</td>
+                      <tr key={b.booking_id} style={{borderBottom:"1px solid #f0f0e8",background:i%2===0?"white":"#fafaf5"}}>
+                        <td style={{padding:"12px 16px",color:"#aaa",fontSize:11}}>#{b.booking_id.slice(-5)}</td>
+                        <td style={{padding:"12px 16px",color:"#222",fontSize:13,fontWeight:"bold"}}>{b.customer_name}</td>
+                        <td style={{padding:"12px 16px",color:"#1b5e20",fontSize:13,fontWeight:"bold"}}>{b.vendor_name}</td>
+                        <td style={{padding:"12px 16px",color:"#444",fontSize:13}}>{b.vegetable_name}</td>
+                        <td style={{padding:"12px 16px",color:"#555",fontSize:13}}>{b.quantity} {b.unit}</td>
+                        <td style={{padding:"12px 16px",color:"#e65100",fontWeight:"bold",fontSize:13}}>₹{Number(b.total_amount).toFixed(2)}</td>
                         <td style={{padding:"12px 16px"}}>
-                          <span style={{padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold",background:`${sc}20`,color:sc,textTransform:"capitalize"}}>{b.status==="completed"?"Delivered":b.status}</span>
+                          <span style={{padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:"bold",background:sb,color:sc,textTransform:"capitalize"}}>{b.status==="completed"?"Delivered":b.status}</span>
                         </td>
-                        <td style={{padding:"12px 16px",color:"rgba(255,255,255,0.4)",fontSize:11}}>{b.created_at?.slice(0,10)}</td>
+                        <td style={{padding:"12px 16px",color:"#888",fontSize:11}}>{b.created_at?.slice(0,10)}</td>
                       </tr>
                     );
                   })}
@@ -367,7 +368,7 @@ export default function AdminDashboard() {
   );
 }
 
-const actBtn = (color, bg) => ({
-  padding:"6px 10px", background:bg, border:`1px solid ${color}40`,
+const AB = (color, bg) => ({
+  padding:"6px 10px", background:bg, border:`1px solid ${color}`,
   borderRadius:8, color, cursor:"pointer", fontSize:13, fontWeight:"bold",
 });
