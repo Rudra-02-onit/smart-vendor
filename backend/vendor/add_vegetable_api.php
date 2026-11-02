@@ -46,6 +46,8 @@ $price              = trim($_POST["price"]              ?? "");
 $unit               = trim($_POST["unit"]               ?? "");
 $available_quantity = trim($_POST["available_quantity"] ?? "");
 $description        = trim($_POST["description"]        ?? "");
+$category           = trim($_POST["category"]           ?? "Vegetables");
+$location           = trim($_POST["location"]           ?? "");
 $image_name         = "";
 
 if ($name === "" || $price === "" || $unit === "" || $available_quantity === "") {

@@ -42,14 +42,13 @@ foreach ($cursor as $row) {
         $actualFile = $uploadsDir . $fileName;
 
         if (file_exists($actualFile)) {
-            $imageUrl = "http://localhost/smart_vendor/uploads/" . rawurlencode($fileName);
+            $imageUrl = "http://localhost/uploads/" . rawurlencode($fileName);
         } else {
             $vegName    = trim($row["name"]);
             $extensions = ["jpg", "jpeg", "png", "webp", "jfif"];
             foreach ($extensions as $ext) {
-                $possibleFile = $uploadsDir . $vegName . "." . $ext;
-                if (file_exists($possibleFile)) {
-                    $imageUrl = "http://localhost/smart_vendor/uploads/" . rawurlencode($vegName . "." . $ext);
+                if (file_exists($uploadsDir . $vegName . "." . $ext)) {
+                    $imageUrl = "http://localhost/uploads/" . rawurlencode($vegName . "." . $ext);
                     break;
                 }
             }
@@ -70,6 +69,7 @@ foreach ($cursor as $row) {
         "unit"               => $row["unit"]                ?? "kg",
         "available_quantity" => $row["available_quantity"]  ?? 0,
         "description"        => $row["description"]         ?? "",
+        "category"           => $row["category"]            ?? "Vegetables",
         "image"              => $imageUrl,
         "vendor_name"        => $vendorName
     ];

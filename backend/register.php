@@ -1,9 +1,10 @@
 <?php
 
-header("Access-Control-Allow-Origin: http://localhost:5173");
+$origin = $_SERVER['HTTP_ORIGIN'] ?? 'http://localhost:5173';
+header("Access-Control-Allow-Origin: $origin");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Headers: Content-Type, X-Requested-With");
 header("Content-Type: application/json");
 
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
@@ -79,6 +80,30 @@ if ($name === "" || $email === "" || $phone === "" || $address === "" || $passwo
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(["success" => false, "message" => "Please enter a valid email."]);
+    exit();
+}
+
+// Phone validation - 10 digits, starts with 6/7/8/9
+if (!preg_match('/^[6-9][0-9]{9}$/', $phone)) {
+    echo json_encode(["success" => false, "message" => "Phone number must be 10 digits and must start with 6, 7, 8 or 9."]);
+    exit();
+}
+
+// Password validation - 8-12 chars, 1 uppercase, 1 special char, 1 number
+if (strlen($password) < 8 || strlen($password) > 12) {
+    echo json_encode(["success" => false, "message" => "Password must be 8 to 12 characters long."]);
+    exit();
+}
+if (!preg_match('/[A-Z]/', $password)) {
+    echo json_encode(["success" => false, "message" => "Password must contain at least 1 uppercase letter (A-Z)."]);
+    exit();
+}
+if (!preg_match('/[@#$*!%^&]/', $password)) {
+    echo json_encode(["success" => false, "message" => "Password must contain at least 1 special character (@#\$*!%^&)."]);
+    exit();
+}
+if (!preg_match('/[0-9]/', $password)) {
+    echo json_encode(["success" => false, "message" => "Password must contain at least 1 number (0-9)."]);
     exit();
 }
 

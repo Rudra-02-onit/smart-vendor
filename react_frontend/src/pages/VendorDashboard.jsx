@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const API = "http://localhost/smart_vendor/backend";
+const API = "http://localhost/backend";
 
 export default function VendorDashboard() {
   const navigate = useNavigate();
@@ -16,7 +16,7 @@ export default function VendorDashboard() {
   // Add/Edit vegetable form
   const [showForm,  setShowForm]  = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [form,      setForm]      = useState({ name: "", price: "", unit: "kg", available_quantity: "", description: "" });
+  const [form,      setForm]      = useState({ name: "", price: "", unit: "kg", available_quantity: "", description: "", category: "Vegetables", location: "" });
   const [imageFile, setImageFile] = useState(null);
   const [formMsg,   setFormMsg]   = useState("");
 
@@ -55,6 +55,7 @@ export default function VendorDashboard() {
 
   async function handleLogout() {
     await fetch(`${API}/logout_api.php`, { method: "POST", credentials: "include" });
+    sessionStorage.removeItem("sv_user");
     navigate("/login");
   }
 
@@ -68,7 +69,7 @@ export default function VendorDashboard() {
 
   function openEditForm(veg) {
     setEditingId(veg.id);
-    setForm({ name: veg.name, price: veg.price, unit: veg.unit, available_quantity: veg.quantity, description: veg.description });
+    setForm({ name: veg.name, price: veg.price, unit: veg.unit, available_quantity: veg.quantity, description: veg.description, category: veg.category || "Vegetables", location: veg.location || "" });
     setImageFile(null);
     setFormMsg("");
     setShowForm(true);
@@ -125,7 +126,7 @@ export default function VendorDashboard() {
   if (loading) return <div style={s.center}><div style={{ fontSize: 48 }}>🥬</div><p>Loading...</p></div>;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f1f8e9" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0a0f 0%,#0d1f0d 40%,#0a0f1a 100%)" }}>
       {/* NAVBAR */}
       <nav style={s.nav}>
         <span style={s.navBrand}>🥬 Smart Vendor — Vendor Panel</span>
@@ -153,15 +154,15 @@ export default function VendorDashboard() {
           <>
             <div style={s.statsGrid}>
               {[
-                { icon: "🥕", label: "My Vegetables", val: vegetables.length, color: "#2e7d32" },
-                { icon: "📦", label: "Total Orders",  val: bookings.length,   color: "#1565c0" },
-                { icon: "⏳", label: "Pending",       val: bookings.filter(b => b.status === "pending").length,   color: "#e65100" },
-                { icon: "✅", label: "Completed",     val: bookings.filter(b => b.status === "completed").length, color: "#6a1b9a" },
+                { icon: "🥕", label: "My Products",  val: vegetables.length, color: "#81c784", grad:"linear-gradient(135deg,#1b5e20,#2e7d32)" },
+                { icon: "📦", label: "Total Orders",  val: bookings.length,   color: "#90caf9", grad:"linear-gradient(135deg,#1565c0,#1976d2)" },
+                { icon: "⏳", label: "Pending",       val: bookings.filter(b => b.status === "pending").length,   color: "#ffa726", grad:"linear-gradient(135deg,#e65100,#f57c00)" },
+                { icon: "✅", label: "Completed",     val: bookings.filter(b => b.status === "completed").length, color: "#ce93d8", grad:"linear-gradient(135deg,#6a1b9a,#7b1fa2)" },
               ].map((st) => (
-                <div key={st.label} style={s.statCard}>
+                <div key={st.label} style={{...s.statCard, background:st.grad, boxShadow:`0 8px 25px rgba(0,0,0,0.3)`}}>
                   <div style={{ fontSize: 32 }}>{st.icon}</div>
-                  <div style={{ fontSize: 28, fontWeight: "bold", color: st.color }}>{st.val}</div>
-                  <div style={{ color: "#666", fontSize: 14 }}>{st.label}</div>
+                  <div style={{ fontSize: 28, fontWeight: "bold", color: "white" }}>{st.val}</div>
+                  <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>{st.label}</div>
                 </div>
               ))}
             </div>
@@ -177,7 +178,7 @@ export default function VendorDashboard() {
         {tab === "vegetables" && (
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-              <h2 style={{ color: "#2e7d32", margin: 0 }}>My Vegetables</h2>
+              <h2 style={{ color: "#81c784", margin: 0 }}>My Vegetables</h2>
               <button onClick={openAddForm} style={s.greenBtn}>+ Add Vegetable</button>
             </div>
 
@@ -188,12 +189,16 @@ export default function VendorDashboard() {
                 {vegetables.map((veg) => (
                   <div key={veg.id} style={s.vegCard}>
                     {veg.image
-                      ? <img src={veg.image} alt={veg.name} style={s.vegImg} onError={e => e.target.style.display = "none"} />
+                      ? <img
+                          src={veg.image.startsWith("http") ? veg.image : `http://localhost/uploads/${veg.image}`}
+                          alt={veg.name} style={s.vegImg}
+                          onError={e => { e.target.onerror=null; e.target.style.display="none"; }}
+                        />
                       : <div style={s.vegImgPlaceholder}>🥬</div>
                     }
-                    <h3 style={{ color: "#2e7d32", margin: "10px 0 4px" }}>{veg.name}</h3>
-                    <p style={{ margin: "4px 0", color: "#555" }}>₹{veg.price} / {veg.unit}</p>
-                    <p style={{ margin: "4px 0", color: "#555" }}>Stock: {veg.quantity} {veg.unit}</p>
+                    <h3 style={{ color: "#81c784", margin: "10px 0 4px" }}>{veg.name}</h3>
+                    <p style={{ margin: "4px 0", color: "rgba(255,255,255,0.6)" }}>₹{veg.price} / {veg.unit}</p>
+                    <p style={{ margin: "4px 0", color: "rgba(255,255,255,0.5)" }}>Stock: {veg.quantity} {veg.unit}</p>
                     <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                       <button onClick={() => openEditForm(veg)} style={s.editBtn}>✏️ Edit</button>
                       <button onClick={() => handleDeleteVeg(veg.id)} style={s.deleteBtn}>🗑️ Delete</button>
@@ -218,12 +223,19 @@ export default function VendorDashboard() {
                   <div key={b.booking_id} style={s.bookingCard}>
                     <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
                       <div>
-                        <h3 style={{ color: "#2e7d32", margin: "0 0 6px" }}>🥬 {b.vegetable_name}</h3>
-                        <p style={s.bookingMeta}>👤 Customer: <strong>{b.customer_name}</strong> · {b.customer_email}</p>
-                        <p style={s.bookingMeta}>📦 Qty: {b.quantity} {b.unit} · ₹{Number(b.price).toFixed(2)}/{b.unit}</p>
-                        <p style={s.bookingMeta}>💰 Total: <strong style={{ color: "#2e7d32" }}>₹{Number(b.total_amount).toFixed(2)}</strong></p>
-                        {b.customer_note && <p style={s.bookingMeta}>📝 Note: {b.customer_note}</p>}
-                        <p style={s.bookingMeta}>📅 {b.created_at}</p>
+                        <h3 style={{ color: "#81c784", margin: "0 0 6px" }}>🥬 {b.vegetable_name}</h3>
+                        <p style={s.bookingMeta}>👤 <strong style={{color:"white"}}>{b.customer_name}</strong> · <span style={{color:"rgba(255,255,255,0.4)"}}>{b.customer_email}</span></p>
+                        <p style={s.bookingMeta}>� {b.customer_phone || "N/A"}</p>
+                        <p style={s.bookingMeta}>�📦 Qty: <strong style={{color:"#ffa726"}}>{b.quantity} {b.unit}</strong> · ₹{Number(b.price).toFixed(2)}/{b.unit}</p>
+                        <p style={s.bookingMeta}>💰 Total: <strong style={{ color: "#ffa726" }}>₹{Number(b.total_amount).toFixed(2)}</strong></p>
+                        {b.customer_note && <p style={s.bookingMeta}>📝 {b.customer_note}</p>}
+                        {b.delivery_slot && (
+                          <div style={{display:"inline-flex",alignItems:"center",gap:6,background:"rgba(255,167,38,0.1)",border:"1px solid rgba(255,167,38,0.25)",borderRadius:8,padding:"5px 10px",marginTop:6}}>
+                            <span>🚚</span>
+                            <span style={{color:"#ffa726",fontSize:12,fontWeight:"bold"}}>{b.delivery_slot}</span>
+                          </div>
+                        )}
+                        <p style={{...s.bookingMeta, marginTop:6}}>📅 {b.created_at}</p>
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <span style={{ display: "inline-block", padding: "5px 14px", borderRadius: 20, fontWeight: "bold", background: statusBg[st] || "#eee", color: statusColor[st] || "#333", textTransform: "capitalize" }}>
@@ -252,12 +264,12 @@ export default function VendorDashboard() {
       {showForm && (
         <div style={s.overlay}>
           <div style={s.modal}>
-            <h2 style={{ color: "#2e7d32", marginBottom: 20 }}>{editingId ? "✏️ Edit Vegetable" : "➕ Add Vegetable"}</h2>
+            <h2 style={{ color: "#81c784", marginBottom: 20 }}>{editingId ? "✏️ Edit Product" : "➕ Add Product"}</h2>
             <form onSubmit={handleSaveVeg}>
               {[
-                { name: "name",               label: "Name *",     type: "text",   placeholder: "e.g. Tomato" },
-                { name: "price",              label: "Price (₹) *", type: "number", placeholder: "e.g. 40" },
-                { name: "available_quantity", label: "Quantity *",  type: "number", placeholder: "e.g. 50" },
+                { name: "name",               label: "Product Name *", type: "text",   placeholder: "e.g. Tomato" },
+                { name: "price",              label: "Price (₹) *",    type: "number", placeholder: "e.g. 40" },
+                { name: "available_quantity", label: "Quantity *",     type: "number", placeholder: "e.g. 50" },
               ].map((f) => (
                 <div key={f.name} style={{ marginBottom: 14 }}>
                   <label style={s.label}>{f.label}</label>
@@ -265,13 +277,49 @@ export default function VendorDashboard() {
                     onChange={e => setForm({ ...form, [f.name]: e.target.value })} required style={s.input} />
                 </div>
               ))}
+
+              {/* Category */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={s.label}>Category *</label>
+                <select value={form.category || "Vegetables"} onChange={e => setForm({ ...form, category: e.target.value })} style={s.input}>
+                  <option value="Vegetables">🥕 Vegetables</option>
+                  <option value="Fruits">🍎 Fruits</option>
+                  <option value="Dairy">🥛 Dairy</option>
+                  <option value="Grocery">🌾 Grocery</option>
+                  <option value="Herbs">🌿 Herbs</option>
+                  <option value="Spices">🌶️ Spices</option>
+                  <option value="Leafy">🥬 Leafy Greens</option>
+                </select>
+              </div>
+
               <div style={{ marginBottom: 14 }}>
                 <label style={s.label}>Unit *</label>
                 <select value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} style={s.input}>
                   <option value="kg">kg</option>
                   <option value="piece">piece</option>
                   <option value="dozen">dozen</option>
+                  <option value="litre">litre</option>
+                  <option value="gm">gm (gram)</option>
+                  <option value="packet">packet</option>
                 </select>
+              </div>
+
+              {/* Location */}
+              <div style={{ marginBottom: 14 }}>
+                <label style={s.label}>Pickup Location</label>
+                <div style={{display:"flex",gap:8}}>
+                  <input type="text" placeholder="Enter location or use GPS" value={form.location || ""}
+                    onChange={e => setForm({ ...form, location: e.target.value })} style={{...s.input,flex:1}} />
+                  <button type="button" onClick={() => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(pos => {
+                        setForm({ ...form, location: `${pos.coords.latitude.toFixed(4)}, ${pos.coords.longitude.toFixed(4)}` });
+                      }, () => alert("Location access denied."));
+                    }
+                  }} style={{padding:"0 12px",background:"rgba(66,165,245,0.2)",border:"1px solid rgba(66,165,245,0.4)",borderRadius:8,color:"#90caf9",cursor:"pointer",fontSize:18,flexShrink:0}}>
+                    📍
+                  </button>
+                </div>
               </div>
               <div style={{ marginBottom: 14 }}>
                 <label style={s.label}>Description</label>
@@ -297,32 +345,32 @@ export default function VendorDashboard() {
 
 // ── Styles ──
 const s = {
-  center:      { minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 12, color: "#555" },
-  nav:         { background: "#2e7d32", padding: "14px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" },
-  navBrand:    { color: "white", fontWeight: "bold", fontSize: 18 },
-  logoutBtn:   { padding: "8px 16px", background: "white", color: "#c62828", border: "none", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
-  toast:       { background: "#43a047", color: "white", padding: "12px 20px", textAlign: "center", fontWeight: "bold" },
-  tabs:        { background: "white", display: "flex", gap: 0, borderBottom: "2px solid #e8f5e9", padding: "0 24px" },
-  tab:         { padding: "14px 22px", border: "none", background: "none", cursor: "pointer", fontSize: 15, color: "#555", fontWeight: "bold" },
-  tabActive:   { borderBottom: "3px solid #2e7d32", color: "#2e7d32" },
+  center:      { minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", gap: 12, color: "#aaa", background:"linear-gradient(135deg,#0a0a0f,#0d1f0d,#0a0f1a)" },
+  nav:         { background: "rgba(255,255,255,0.04)", backdropFilter:"blur(20px)", padding: "0 28px", display: "flex", justifyContent: "space-between", alignItems: "center", height:64, borderBottom:"1px solid rgba(255,255,255,0.08)", position:"sticky", top:0, zIndex:100 },
+  navBrand:    { color: "white", fontWeight: "bold", fontSize: 18, display:"flex", alignItems:"center", gap:10 },
+  logoutBtn:   { padding: "8px 18px", background: "rgba(198,40,40,0.2)", border: "1px solid rgba(198,40,40,0.4)", borderRadius: 20, color:"#ef9a9a", cursor: "pointer", fontWeight: "bold", fontSize:13 },
+  toast:       { background: "#43a047", color: "white", padding: "12px 20px", textAlign: "center", fontWeight: "bold", position:"fixed", top:20, right:20, zIndex:9999, borderRadius:12, boxShadow:"0 8px 30px rgba(0,0,0,0.5)" },
+  tabs:        { background: "rgba(255,255,255,0.03)", display: "flex", gap: 4, borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "16px 28px 0" },
+  tab:         { padding: "10px 20px", border: "1px solid transparent", background: "transparent", cursor: "pointer", fontSize: 14, color: "rgba(255,255,255,0.5)", fontWeight: "bold", borderRadius:"10px 10px 0 0", transition:"all 0.2s" },
+  tabActive:   { background:"rgba(46,125,50,0.25)", borderColor:"rgba(46,125,50,0.5)", color: "#81c784" },
   statsGrid:   { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16, marginBottom: 20 },
-  statCard:    { background: "white", borderRadius: 12, padding: "22px 16px", textAlign: "center", boxShadow: "0 3px 12px rgba(0,0,0,0.08)" },
+  statCard:    { background: "rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius: 14, padding: "22px 16px", textAlign: "center" },
   vegGrid:     { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18 },
-  vegCard:     { background: "white", borderRadius: 12, padding: 18, boxShadow: "0 3px 12px rgba(0,0,0,0.08)" },
+  vegCard:     { background: "rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 18, overflow:"hidden" },
   vegImg:      { width: "100%", height: 160, objectFit: "cover", borderRadius: 8 },
-  vegImgPlaceholder: { width: "100%", height: 120, background: "#e8f5e9", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42 },
-  emptyCard:   { background: "white", borderRadius: 12, padding: 40, textAlign: "center", boxShadow: "0 3px 12px rgba(0,0,0,0.08)" },
-  bookingCard: { background: "white", borderRadius: 12, padding: "18px 20px", marginBottom: 14, boxShadow: "0 3px 12px rgba(0,0,0,0.08)" },
-  bookingMeta: { margin: "4px 0", color: "#555", fontSize: 14 },
-  greenBtn:    { padding: "10px 20px", background: "#2e7d32", color: "white", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer", fontSize: 14 },
-  editBtn:     { flex: 1, padding: "8px 0", background: "#e3f2fd", color: "#1565c0", border: "none", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
-  deleteBtn:   { flex: 1, padding: "8px 0", background: "#ffebee", color: "#c62828", border: "none", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
-  acceptBtn:   { padding: "8px 14px", background: "#e8f5e9", color: "#2e7d32", border: "none", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
-  rejectBtn:   { padding: "8px 14px", background: "#ffebee", color: "#c62828", border: "none", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
-  completeBtn: { padding: "8px 14px", background: "#e3f2fd", color: "#1565c0", border: "none", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
-  cancelBtn:   { padding: "10px 20px", background: "#757575", color: "white", border: "none", borderRadius: 8, fontWeight: "bold", cursor: "pointer" },
-  overlay:     { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", padding: 20, zIndex: 1000 },
-  modal:       { background: "white", width: "100%", maxWidth: 480, padding: 30, borderRadius: 14, maxHeight: "90vh", overflowY: "auto" },
-  label:       { display: "block", marginBottom: 5, fontWeight: "bold", color: "#444", fontSize: 13 },
-  input:       { width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: 7, fontSize: 14, boxSizing: "border-box" },
+  vegImgPlaceholder: { width: "100%", height: 120, background: "rgba(46,125,50,0.2)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42 },
+  emptyCard:   { background: "rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: 40, textAlign: "center", color:"rgba(255,255,255,0.5)" },
+  bookingCard: { background: "rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "18px 20px", marginBottom: 14 },
+  bookingMeta: { margin: "4px 0", color: "rgba(255,255,255,0.6)", fontSize: 14 },
+  greenBtn:    { padding: "10px 20px", background: "linear-gradient(135deg,#1b5e20,#43a047)", color: "white", border: "none", borderRadius: 10, fontWeight: "bold", cursor: "pointer", fontSize: 14 },
+  editBtn:     { flex: 1, padding: "8px 0", background: "rgba(21,101,192,0.2)", color: "#90caf9", border: "1px solid rgba(21,101,192,0.3)", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
+  deleteBtn:   { flex: 1, padding: "8px 0", background: "rgba(198,40,40,0.2)", color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.3)", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
+  acceptBtn:   { padding: "8px 14px", background: "rgba(46,125,50,0.2)", color: "#81c784", border: "1px solid rgba(46,125,50,0.3)", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
+  rejectBtn:   { padding: "8px 14px", background: "rgba(198,40,40,0.2)", color: "#ef9a9a", border: "1px solid rgba(198,40,40,0.3)", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
+  completeBtn: { padding: "8px 14px", background: "rgba(21,101,192,0.2)", color: "#90caf9", border: "1px solid rgba(21,101,192,0.3)", borderRadius: 7, fontWeight: "bold", cursor: "pointer" },
+  cancelBtn:   { padding: "10px 20px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.6)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontWeight: "bold", cursor: "pointer" },
+  overlay:     { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(0,0,0,0.75)", backdropFilter:"blur(6px)", display: "flex", justifyContent: "center", alignItems: "center", padding: 20, zIndex: 1000 },
+  modal:       { background: "#111820", border:"1px solid rgba(255,255,255,0.1)", width: "100%", maxWidth: 480, padding: 30, borderRadius: 18, maxHeight: "90vh", overflowY: "auto", boxShadow:"0 30px 80px rgba(0,0,0,0.6)" },
+  label:       { display: "block", marginBottom: 5, fontWeight: "bold", color: "rgba(255,255,255,0.7)", fontSize: 13 },
+  input:       { width: "100%", padding: "10px 12px", background:"rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 9, fontSize: 14, boxSizing: "border-box", color:"white", fontFamily:"inherit" },
 };

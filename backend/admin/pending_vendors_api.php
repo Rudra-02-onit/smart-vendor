@@ -49,16 +49,25 @@ foreach ($cursor as $row) {
     $photo     = $profile["photo"]      ?? "";
 
     $vendors[] = [
-        "id"          => (string)$userId,
-        "name"        => $row["name"]    ?? "",
-        "email"       => $row["email"]   ?? "",
-        "phone"       => $row["phone"]   ?? "",
-        "address"     => $row["address"] ?? "",
-        "status"      => $row["status"]  ?? "pending",
-        "shop_name"   => $shopName,
-        "location"    => $location,
-        "description" => $desc,
-        "photo"       => $photo
+        "id"                   => (string)$userId,
+        "name"                 => $row["name"]                    ?? "",
+        "email"                => $row["email"]                   ?? "",
+        "phone"                => $row["phone"]                   ?? "",
+        "address"              => $row["address"]                 ?? "",
+        "status"               => $row["status"]                  ?? "pending",
+        "shop_name"            => $shopName,
+        "location"             => $location,
+        "description"          => $desc,
+        "photo"                => $photo,
+        "id_proof_number"      => $profile["id_proof_number"]     ?? "",
+        "id_proof_document"    => $profile["id_proof_document"]   ?? "",
+        "tax_number"           => $profile["tax_number"]          ?? "",
+        "tax_document"         => $profile["tax_document"]        ?? "",
+        "bank_name"            => $profile["bank_name"]           ?? "",
+        "account_holder_name"  => $profile["account_holder_name"] ?? "",
+        "account_number"       => $profile["account_number"]      ?? "",
+        "ifsc_code"            => $profile["ifsc_code"]           ?? "",
+        "licence_number"       => $profile["licence_number"]      ?? ""
     ];
 }
 

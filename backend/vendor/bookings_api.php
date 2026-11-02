@@ -128,6 +128,7 @@ foreach ($cursor as $b) {
         "vegetable_name" => $b["vegetable_name"]   ?? "",
         "unit"           => $b["unit"]             ?? "kg",
         "image"          => $b["image"]            ?? "",
+        "delivery_slot"  => $b["delivery_slot"]    ?? "",
         "customer_name"  => $customerName,
         "customer_email" => $customerEmail,
         "customer_phone" => $customerPhone
