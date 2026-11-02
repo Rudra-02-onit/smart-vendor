@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import OffersSlider from "../components/OffersSlider";
 
 const MENU_ITEMS = [
   { icon:"🏠", label:"Home",            path:"/customer-dashboard" },
@@ -205,6 +206,9 @@ export default function Vegetables() {
       </nav>
 
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px" }}>
+
+        {/* ── OFFERS SLIDER ── */}
+        <OffersSlider />
 
         {/* ── BANNER SLIDER ── */}
         <div style={{ borderRadius: 16, overflow: "hidden", marginBottom: 20, position: "relative", height: 160, cursor: "pointer" }}>

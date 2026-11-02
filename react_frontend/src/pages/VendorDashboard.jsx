@@ -137,12 +137,13 @@ export default function VendorDashboard() {
   const statusColor = { pending:"#e65100", accepted:"#1b5e20", rejected:"#c62828", completed:"#1565c0" };
   const statusBg    = { pending:"#fff3e0", accepted:"#e8f5e9", rejected:"#ffebee", completed:"#e3f2fd" };
 
-  if (loading) return (
-    <div style={{minHeight:"100vh",background:"#f5f5f0",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12}}>
-      <div style={{fontSize:48}}>🌿</div>
-      <p style={{color:"#555"}}>Loading Vendor Panel...</p>
-    </div>
-  );
+        {/* Logout at bottom */}
+        <div style={{marginTop:"auto",borderTop:"1px solid rgba(255,255,255,0.1)",padding:"12px 8px",flexShrink:0}}>
+          <button onClick={handleLogout}
+            style={{width:"calc(100%)",padding:"10px 12px",background:"rgba(239,83,80,0.2)",border:"1px solid rgba(239,83,80,0.4)",borderRadius:8,color:"#ef9a9a",cursor:"pointer",display:"flex",alignItems:"center",gap:8,fontSize:12,fontWeight:"bold",fontFamily:"inherit"}}>
+            <span style={{fontSize:16,flexShrink:0}}>🚪</span> Logout
+          </button>
+        </div>
 
   return (
     <div style={{minHeight:"100vh",background:"#f5f5f0",fontFamily:"system-ui,sans-serif"}}>
