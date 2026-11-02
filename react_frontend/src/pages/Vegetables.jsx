@@ -93,7 +93,7 @@ export default function Vegetables() {
     try {
       const r = await fetch("http://localhost/backend/customer/book_api.php", { method: "POST", credentials: "include", body: fd });
       const d = await r.json();
-      if (d.success) { setDeliveryInfo({ slot: d.delivery_slot, id: d.booking_id, total: d.total_amount }); load(); }
+      if (d.success) { setDeliveryInfo({ slot: d.delivery_slot, id: d.booking_id, total: d.total_amount, itemTotal: d.item_total, fee: d.platform_fee, delivery: d.delivery_charge, tax: d.tax }); load(); }
       else setBookMsg(d.message || "Booking failed.");
     } catch { setBookMsg("Connection failed."); }
     finally { setBooking(false); }
@@ -301,10 +301,26 @@ export default function Vegetables() {
                   <div style={{ color: "#888", fontSize: 12 }}>🚚 Delivery Slot</div>
                   <div style={{ color: "#1b5e20", fontWeight: 900, fontSize: 18, marginTop: 4 }}>{deliveryInfo.slot}</div>
                 </div>
-                <div style={{ background: "#fff3e0", borderRadius: 12, padding: "12px", marginBottom: 20 }}>
-                  <div style={{ color: "#888", fontSize: 12 }}>Total</div>
-                  <div style={{ color: "#e65100", fontWeight: 900, fontSize: 26 }}>₹{Number(deliveryInfo.total).toFixed(2)}</div>
+
+                {/* Price Breakdown */}
+                <div style={{background:"#f9f9f5",border:"1px solid #e0e0d8",borderRadius:12,padding:"14px",marginBottom:14,textAlign:"left"}}>
+                  {[
+                    {l:"Item Total",      v:`₹${Number(deliveryInfo.itemTotal||0).toFixed(2)}`,      c:"#222"},
+                    {l:"Platform Fee",    v:`+₹${Number(deliveryInfo.fee||0).toFixed(2)}`,      c:"#e65100"},
+                    {l:"Delivery",        v:`+₹${Number(deliveryInfo.delivery||0).toFixed(2)}`, c:"#1565c0"},
+                    {l:"Tax",             v:`+₹${Number(deliveryInfo.tax||0).toFixed(2)}`,      c:"#6a1b9a"},
+                  ].map(x=>(
+                    <div key={x.l} style={{display:"flex",justifyContent:"space-between",padding:"5px 0",borderBottom:"1px solid #f0f0e8"}}>
+                      <span style={{color:"#666",fontSize:13}}>{x.l}</span>
+                      <span style={{color:x.c,fontWeight:"bold",fontSize:13}}>{x.v}</span>
+                    </div>
+                  ))}
+                  <div style={{display:"flex",justifyContent:"space-between",marginTop:8}}>
+                    <span style={{color:"#1b5e20",fontWeight:900,fontSize:15}}>Grand Total</span>
+                    <span style={{color:"#1b5e20",fontWeight:900,fontSize:18}}>₹{Number(deliveryInfo.total).toFixed(2)}</span>
+                  </div>
                 </div>
+
                 <div style={{ display: "flex", gap: 10 }}>
                   <button onClick={() => navigate("/my-bookings")} style={{ flex: 1, padding: "12px", background: "linear-gradient(135deg,#2e7d32,#43a047)", color: "white", border: "none", borderRadius: 10, fontWeight: "bold", cursor: "pointer" }}>View Orders</button>
                   <button onClick={close} style={{ flex: 1, padding: "12px", background: "#f5f5f0", color: "#555", border: "none", borderRadius: 10, cursor: "pointer" }}>Continue</button>

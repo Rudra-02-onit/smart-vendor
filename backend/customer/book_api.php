@@ -76,6 +76,24 @@ if ($hour >= 5 && $hour < 8) {
 $price        = (float)$vegetable["price"];
 $total_amount = $quantity * $price;
 $vendor_id    = $vegetable["vendor_id"];
+
+// Get platform settings
+$settingsCollection = $db->platform_settings;
+$settings = $settingsCollection->findOne(["type"=>"main"]);
+$platformFeePct = (float)($settings["platform_fee_percent"] ?? 5);
+$deliveryCharge = (float)($settings["delivery_charge_base"] ?? 20);
+$taxPct         = (float)($settings["tax_percent"]          ?? 2);
+$minQty         = (float)($settings["min_quantity_kg"]      ?? 0.5);
+
+// Min quantity check
+if ($quantity < $minQty) {
+    echo json_encode(["success"=>false,"message"=>"Minimum order quantity is {$minQty} {$vegetable['unit']}."]);
+    exit();
+}
+
+$platform_fee  = round($total_amount * $platformFeePct / 100, 2);
+$tax_amount    = round($total_amount * $taxPct / 100, 2);
+$grand_total   = $total_amount + $platform_fee + $deliveryCharge + $tax_amount;
 $now          = new UTCDateTime();
 
 try {
@@ -90,7 +108,11 @@ try {
         "unit"           => $vegetable["unit"],
         "quantity"       => $quantity,
         "price"          => $price,
-        "total_amount"   => $total_amount,
+        "item_total"     => $total_amount,
+        "platform_fee"   => $platform_fee,
+        "delivery_charge"=> $deliveryCharge,
+        "tax"            => $tax_amount,
+        "total_amount"   => $grand_total,
         "status"         => "pending",
         "customer_note"  => $customer_note,
         "delivery_slot"  => $deliverySlot,
@@ -108,11 +130,15 @@ try {
     );
 
     echo json_encode([
-        "success"       => true,
-        "message"       => "Booking successful.",
-        "booking_id"    => $booking_id,
-        "total_amount"  => $total_amount,
-        "delivery_slot" => $deliverySlot
+        "success"        => true,
+        "message"        => "Booking successful.",
+        "booking_id"     => $booking_id,
+        "item_total"     => $total_amount,
+        "platform_fee"   => $platform_fee,
+        "delivery_charge"=> $deliveryCharge,
+        "tax"            => $tax_amount,
+        "total_amount"   => $grand_total,
+        "delivery_slot"  => $deliverySlot
     ]);
 
 } catch (Exception $e) {
